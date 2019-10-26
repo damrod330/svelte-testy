@@ -27,7 +27,7 @@
           newResultsList.push({
             id: test.id,
             name: test.name,
-            results: resultsData,
+            data: resultsData,
             downloadLink: getCsvLink(resultsData, test.id)
           });
       });
@@ -53,9 +53,11 @@
         {#each resultList as result}
           <tr key={result.id}>
             <td>{result.id}</td>
-            <td>{result.results.length}</td>
-            <td></td>
-            <td></td>
+            <td>{result.data.length}</td>
+            <td>{result.data.shift()}</td>
+                <td>{result.data.length > 0 ? result.data.reduce((sum, item)=>{
+                    return sum + item;
+                }) / result.data.length : 'brak elementów'}</td>
             <td>
               <a href={result.downloadLink} download={result.id + '.csv'}>
                 Pobierz

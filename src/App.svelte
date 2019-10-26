@@ -5,15 +5,13 @@
   import MeasureRenderer from "./components/MeasureRenderer.svelte";
 
   let currentTestId = "T01",
-    repeatAmount = 1,
     currentComponentInstance = null,
-    oddProp = false;
+    repeatAmount = 1,
+    timer = 200,
+    oddProp = false,
+    interval = null;
 
-    $: measures = [];
-
-  function handleChange(e) {
-    repeatAmount = e.target.value;
-  }
+  $: measures = [];
 
   function handleSelect(e) {
     currentTestId = e.target.value;
@@ -22,30 +20,37 @@
   }
 
   function handleRunTestClicked() {
-    let test = testList.find(test => test.id === currentTestId);
-    let count = repeatAmount;
-    while (count) {
-      runTest(test, count);
-      count--;
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+      return "";
     }
-    updateResults();
+    let test = testList.find(test => test.id === currentTestId);
+    if (timer) {
+      interval = setInterval(() => {
+        runTest(test);
+      }, timer);
+    } else {
+      runTest(test);
+    }
   }
 
-  function runTest(test, repeatAmount) {
+  function runTest(test, count) {
     oddProp = !oddProp;
     if (!currentComponentInstance) {
       // create new instance
       currentComponentInstance = new MeasureRenderer({
         props: {
           id: test.id,
-          Component: test.component,
+          Component: test.run,
           props: test.props[oddProp ? 0 : 1]
         },
         target: document.getElementById("test-area")
       });
     } else {
-      currentComponentInstance.$set({props: test.props[oddProp ? 0 : 1]});
+      currentComponentInstance.$set({ props: test.props[oddProp ? 0 : 1] });
     }
+    updateResults();
     return true;
   }
 
@@ -61,7 +66,7 @@
       <label>Wybierz test:</label>
       <select name="select-test" value={currentTestId} on:change={handleSelect}>
         {#each testList as test}
-          <option value={test.id} key={test.id}>{test.name}</option>
+          <option value={test.id} key={test.id}>[{test.id}] {test.name}</option>
         {/each}
       </select>
     </div>
@@ -71,11 +76,12 @@
         type="number"
         name="select-test"
         value={repeatAmount}
-        on:change={handleChange}
         placeholder="Ilość powtórzeń" />
     </div>
     <div class="form-control">
-      <button type="button" on:click={handleRunTestClicked}>Uruchom</button>
+      <button type="button" on:click={handleRunTestClicked}>
+        {!interval ? 'Uruchom' : 'Zatrzymaj'}
+      </button>
     </div>
   </section>
   <ResultsTable {measures} />
