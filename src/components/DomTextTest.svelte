@@ -1,7 +1,6 @@
 <script>
   export let text = "";
 </script>
-
 <div>
   <h1>{text}</h1>
   <h3>{text}</h3>
